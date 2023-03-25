@@ -127,6 +127,8 @@ class NoiseScheduleVP:
         """
         Compute log(alpha_t) of a given continuous-time label t in [0, T].
         """
+        if torch.backends.mps.is_available():
+            t = t.to('cpu').to(t.device)
         if self.schedule == 'discrete':
             return interpolate_fn(t.reshape((-1, 1)), self.t_array.to(t.device), self.log_alpha_array.to(t.device)).reshape((-1))
         elif self.schedule == 'linear':
@@ -140,18 +142,24 @@ class NoiseScheduleVP:
         """
         Compute alpha_t of a given continuous-time label t in [0, T].
         """
+        if torch.backends.mps.is_available():
+            t = t.to('cpu').to(t.device)
         return torch.exp(self.marginal_log_mean_coeff(t))
 
     def marginal_std(self, t):
         """
         Compute sigma_t of a given continuous-time label t in [0, T].
         """
+        if torch.backends.mps.is_available():
+            t = t.to('cpu').to(t.device)
         return torch.sqrt(1. - torch.exp(2. * self.marginal_log_mean_coeff(t)))
 
     def marginal_lambda(self, t):
         """
         Compute lambda_t = log(alpha_t) - log(sigma_t) of a given continuous-time label t in [0, T].
         """
+        if torch.backends.mps.is_available():
+            t = t.to('cpu').to(t.device)
         log_mean_coeff = self.marginal_log_mean_coeff(t)
         log_std = 0.5 * torch.log(1. - torch.exp(2. * log_mean_coeff))
         return log_mean_coeff - log_std
@@ -410,6 +418,8 @@ class UniPC:
         return x0
 
     def model(self, x, t):
+        if torch.backends.mps.is_available():
+            t = t.to('cpu').to(t.device)
         cond = self.condition
         uncond = self.unconditional_condition
         if self.before_sample is not None:
